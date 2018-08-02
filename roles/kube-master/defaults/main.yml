@@ -1,0 +1,11 @@
+kubeadm_opts: "--ignore-preflight-errors Swap"
+
+service_subnet: 10.96.0
+service_cidr: "{{ service_subnet }}.0/12"
+dns_name: cluster.local
+dns_ip: "{{ service_subnet }}.10"
+pod_network_cidr: "10.244.0.0/16"
+
+ansible_templates_dir: "{{ role_path }}/templates"
+kubeadmin_config: "{{ kubernetes_dir }}/admin.conf"
+kube_persistent_volumes_dir: "{{ kubernetes_dir }}/persistent-vols"

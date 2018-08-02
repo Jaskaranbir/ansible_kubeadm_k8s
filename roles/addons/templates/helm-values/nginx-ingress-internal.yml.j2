@@ -1,0 +1,14 @@
+controller:
+  config:
+    ssl-redirect: "false"
+  ingressClass: nginx-internal
+  metrics:
+    enabled: true
+  stats:
+    enabled: true
+
+  service:
+    type: NodePort
+    nodePorts:
+      http: 30080
+      https: 30443

@@ -1,0 +1,30 @@
+alertmanager:
+  ingress:
+    annotations:
+      ingress.kubernetes.io/rewrite-target: /
+      kubernetes.io/ingress.class: nginx-internal
+    enabled: true
+    hosts:
+      - prometheus.alertmanager
+  persistentVolume:
+    enabled: false
+
+pushgateway:
+  ingress:
+    annotations:
+      ingress.kubernetes.io/rewrite-target: /
+      kubernetes.io/ingress.class: nginx-internal
+    enabled: true
+    hosts:
+      - prometheus.pushgateway
+
+server:
+  ingress:
+    annotations:
+      ingress.kubernetes.io/rewrite-target: /
+      kubernetes.io/ingress.class: nginx-internal
+    enabled: true
+    hosts:
+      - prometheus.server
+  persistentVolume:
+    enabled: false

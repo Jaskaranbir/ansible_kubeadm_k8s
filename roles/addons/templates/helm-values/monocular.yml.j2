@@ -1,0 +1,9 @@
+api:
+  config:
+    tillerNamespace: {{ admin_namespace_full }}
+
+ingress:
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx-internal
+  hosts: monocular.local

@@ -1,0 +1,53 @@
+---
+
+- name: Install base packages
+  hosts: kubernetes
+  gather_facts: true
+  become: true
+  roles:
+    - role: bootstrap
+      tags:
+        - bootstrap
+
+- name: Configure Kubernetes masters
+  hosts: kube-master-01
+  gather_facts: true
+  become: true
+  roles:
+    - role: kube-master
+      tags:
+        - kube-master
+    - role: cni
+      tags:
+        - cni
+
+# - name: Configure Kubernetes workers
+#   hosts: kube-worker-01
+#   gather_facts: true
+#   become: true
+#   roles:
+#     - role: kube-worker
+#       tags:
+#         - worker
+#     - role: cni
+#       tags:
+#         - cni
+
+- name: Setup Kubernetes addons
+  hosts: kube-master-01
+  gather_facts: true
+  become: true
+  roles:
+    - role: addons
+      tags:
+        - addons
+
+- name: Setup cluster user-accounts
+  hosts: kube-master-01
+  gather_facts: true
+  become: true
+  roles:
+    - role: user-accounts
+      tags:
+        - accounts
+        - auth

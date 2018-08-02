@@ -1,0 +1,12 @@
+---
+
+- name: Copy Kubernetes user-namespaces manifests
+  include: "{{ ansible_macros_dir }}/template_copy.yml"
+  with_items:
+    - name: Add namespace manifests
+      src : "{{ ansible_templates_dir }}/namespaces"
+      dest: "{{ kube_namespace_dir }}"
+
+- name: Create Kubernetes user-namespaces
+  become: false
+  command: "kubectl apply -f {{ kube_namespace_dir }}"

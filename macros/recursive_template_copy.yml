@@ -1,0 +1,25 @@
+---
+
+- name: "Create base directory for - {{ item.name }}"
+  file:
+    path: "{{ item.dest }}"
+    state: directory
+
+- name: "Create directories for - {{ item.name }}"
+  file:
+    path: "{{ item.dest }}/{{ template_dir.path }}"
+    state: directory
+  with_filetree: "{{ item.src }}"
+  when: template_dir.state == "directory"
+  loop_control:
+    loop_var: template_dir
+
+- name: "{{ item.name }}"
+  template:
+    src: "{{ template_file.src }}"
+    dest: "{{ item.dest }}/{{ template_file.path | replace('.j2', '') }}"
+    mode: "{{ (item.mode | default(0644)) }}"
+  with_filetree: "{{ item.src }}"
+  when: template_file.state == "file"
+  loop_control:
+    loop_var: template_file

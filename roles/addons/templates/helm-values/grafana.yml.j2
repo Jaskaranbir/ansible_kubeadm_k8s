@@ -1,0 +1,45 @@
+adminUser: admin
+adminPassword: admin
+
+datasources:
+ datasources.yaml:
+   apiVersion: 1
+   datasources:
+   - name: Prometheus
+     type: prometheus
+     url: http://prometheus-server
+     access: proxy
+     isDefault: true
+
+dashboards:
+  prometheus:
+    kube-dash:
+      # Here we added the contents of dashboard-template-file's
+      # json, and then minified that json so its fits in single line.
+      # This helps in easier yaml formatting.
+      json: '{{
+        lookup("file", "{{ ansible_templates_dir }}/grafana-dashboards/kubernetes_cluster_monitoring_prometheus.json")
+          | from_json
+          | to_json(separators=(",",":"))
+      }}'
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+    - name: "default"
+      orgId: 1
+      folder: ""
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards
+
+ingress:
+  enabled: true
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx-internal
+  hosts:
+    - grafana.local

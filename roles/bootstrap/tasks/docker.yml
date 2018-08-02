@@ -1,0 +1,52 @@
+---
+
+- name: Install Docker Pre-Requisites
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+
+- name: Add Docker GPG Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+
+- name: Add Docker Repository
+  apt_repository:
+    repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+
+- name: Install Docker-CE
+  apt:
+    name: "docker-ce={{ docker_version }}*"
+
+- name: Ensure group "docker" exists
+  group:
+    name: docker
+    state: present
+
+- name: Add users to "docker" group
+  user:
+    name: "{{ item }}"
+    state: present
+    groups: "docker"
+    append: true
+  with_items: "{{ docker_users }}"
+  when: docker_users
+
+- name: Reload "docker" group-cache
+  command: newgrp docker
+
+- name: Reset SSH connection for updating changes to current user
+  meta: reset_connection
+
+- name: Install Docker Compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+    dest: "{{ docker_compose_install_location }}/docker-compose"
+    force: true
+    owner: "root"
+    group: "root"
+    mode: 0755

@@ -1,0 +1,16 @@
+---
+
+- name: "Create directories for - {{ item.name }}"
+  file:
+    path: "{{ item.dest }}"
+    state: directory
+
+- name: "{{ item.name }}"
+  template:
+    src: "{{ template_file }}"
+    # Get filename, and remove ".j2" extension
+    dest: "{{ item.dest }}/{{ template_file | basename | replace('.j2', '') }}"
+    mode: "{{ (item.mode|default(0644)) }}"
+  with_fileglob: "{{ item.src }}/*"
+  loop_control:
+    loop_var: template_file

@@ -1,0 +1,10 @@
+docker_version: 17.03
+docker_users:
+  - "{{ ansible_ssh_user }}"
+docker_compose_version         : 1.22.0
+docker_compose_install_location: /usr/local/bin
+
+kubernetes_packages:
+  - kubelet
+  - kubeadm
+  - kubectl

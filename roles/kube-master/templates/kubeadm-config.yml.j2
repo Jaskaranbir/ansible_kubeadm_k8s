@@ -1,0 +1,35 @@
+apiVersion: kubeadm.k8s.io/v1alpha2
+kind: MasterConfiguration
+kubernetesVersion: {{ kube_version }}
+
+api:
+  advertiseAddress: {{ kube_master_address }}
+
+networking:
+  dnsDomain: {{ dns_name }}
+  serviceSubnet: {{ service_cidr }}
+  podSubnet: {{ pod_network_cidr }}
+
+bootstrapToken:
+  - groups:
+      - system:bootstrappers:kubeadm:default-node-token
+    token: {{ token }}
+    ttl: 24h0m0s
+    usages:
+      - signing
+      - authentication
+
+controllerManagerExtraArgs:
+  enable-hostpath-provisioner: "true"
+
+kubeletConfiguration:
+  baseConfig:
+    cgroupDriver: cgroupfs
+    cgroupsPerQOS: true
+    failSwapOn: false
+
+# Allow scheduling on master if its single-node cluster
+{% if "kubernetes-workers" not in groups %}
+nodeRegistration:
+  taints: []
+{% endif %}

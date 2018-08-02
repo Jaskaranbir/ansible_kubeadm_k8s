@@ -1,0 +1,74 @@
+---
+
+- name: Ensure helm-cert-{{ namespace }} dir exists
+  file:
+    path: "{{ cert_path }}"
+    state: directory
+
+- name: Generate {{ namespace }} tiller-CA key
+  command: openssl genrsa
+            -out tiller-{{ namespace }}-ca-key.pem 4096
+  args:
+    chdir: "{{ cert_path }}"
+
+- name: Generate {{ namespace }} tiller-CA
+  command: openssl req  -x509
+            -new        -nodes
+            -key        tiller-{{ namespace }}-ca-key.pem
+            -days       10000
+            -extensions v3_ca
+            -sha256
+            -subj       "/CN=tiller-{{ namespace }}/O=tiller-{{ namespace }}"
+            -out        tiller-{{ namespace }}-ca.pem
+  args:
+    chdir: "{{ cert_path }}"
+
+- name: Generate {{ namespace }} tiller key
+  command: openssl genrsa
+            -out tiller-{{ namespace }}-key.pem 4096
+  args:
+    chdir: "{{ cert_path }}"
+
+- name: Generate {{ namespace }} helm key
+  command: openssl genrsa
+            -out helm-{{ namespace }}-key.pem 4096
+  args:
+    chdir: "{{ cert_path }}"
+
+- name: Generate {{ namespace }} tiller csr
+  command: openssl req -new -sha256
+            -key  tiller-{{ namespace }}-key.pem
+            -out  tiller-{{ namespace }}.csr
+            -subj "/CN=tiller-{{ namespace }}-server/O=Tiller{{namespace}}Server"
+  args:
+    chdir: "{{ cert_path }}"
+
+- name: Generate {{ namespace }} helm csr
+  command: openssl req -new -sha256
+            -key  helm-{{ namespace }}-key.pem
+            -out  helm-{{ namespace }}.csr
+            -subj "/CN=helm-{{ namespace }}-client/O=Helm{{ namespace }}Client"
+  args:
+    chdir: "{{ cert_path }}"
+
+- name: Generate {{ namespace }} tiller certificate
+  command: openssl x509 -req
+            -CA    tiller-{{ namespace }}-ca.pem
+            -CAkey tiller-{{ namespace }}-ca-key.pem
+            -CAcreateserial
+            -in    tiller-{{ namespace }}.csr
+            -out   tiller-{{ namespace }}-cert.pem
+            -days  365
+  args:
+    chdir: "{{ cert_path }}"
+
+- name: Generate {{ namespace }} helm certificate
+  command: openssl x509 -req
+            -CA    tiller-{{ namespace }}-ca.pem
+            -CAkey tiller-{{ namespace }}-ca-key.pem
+            -CAcreateserial
+            -in    helm-{{ namespace }}.csr
+            -out   helm-{{ namespace }}-cert.pem
+            -days  365
+  args:
+    chdir: "{{ cert_path }}"

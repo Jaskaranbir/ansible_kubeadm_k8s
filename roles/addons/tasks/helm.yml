@@ -1,0 +1,96 @@
+---
+
+- name: Copy tiller rbac manifests
+  include: "{{ ansible_macros_dir }}/recursive_template_copy.yml"
+  with_items:
+    - name: Add tiller rbac manifests
+      src : "{{ ansible_templates_dir }}/rbac"
+      dest: "{{ kube_rbac_dir }}"
+
+- name: Setup helm rbac
+  become: false
+  command: kubectl apply -f {{ kube_rbac_dir }}/tiller
+  delegate_to: "{{ ansible_master_user }}@{{ kube_master_address }}"
+  vars:
+    ansible_ssh_private_key_file: "{{ ansible_ssh_private_key_location }}"
+
+- name: Generate helm and tiller certs
+  include: helm-certs.yml
+  vars:
+    namespace: "{{ item.short_ns }}"
+    cert_path: "{{ helm_certs_dir }}/{{ item.short_ns }}"
+  with_items: "{{ helm_namespaces }}"
+
+- name: Install helm binary
+  shell: curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+  args:
+    executable: /bin/bash
+    warn: false
+
+- name: Configure tiller install
+  become: false
+  command: helm init
+            --tiller-tls      --tiller-tls-verify
+            --service-account={{ helm_service_account }}
+            --tiller-namespace={{ item.full_ns }}
+            --tls-ca-cert     tiller-{{ item.short_ns }}-ca.pem
+            --tiller-tls-cert tiller-{{ item.short_ns }}-cert.pem
+            --tiller-tls-key  tiller-{{ item.short_ns }}-key.pem
+  args:
+    chdir: "{{ helm_certs_dir }}/{{ item.short_ns }}"
+  with_items: "{{ helm_namespaces }}"
+
+- name: Wait for tiller to be ready
+  wait_for:
+    timeout: 10
+
+- name: Copy helm value-templates
+  include: "{{ ansible_macros_dir }}/template_copy.yml"
+  with_items:
+    - name: Add helm value-templates
+      src : "{{ ansible_templates_dir }}/helm-values"
+      dest: "{{ helm_values_dir }}"
+
+# - name: Add Monocular helm-repo
+#   become: false
+#   command: helm repo add monocular https://helm.github.io/monocular --tiller-namespace={{ admin_namespace_full }}
+
+- name: Install helm packages
+  become: false
+  command: helm install {{ item.repo }}/{{ item.name }}
+            {{
+              "-f " ~ helm_values_dir ~ "/" ~ item.valuesFile
+                if item.valuesFile is defined
+                else none
+            }}
+            {{
+              item.extraArgs
+                if item.extraArgs is defined
+                else none
+            }}
+            --tls
+            --tls-ca-cert tiller-{{ admin_namespace_short }}-ca.pem
+            --tls-cert    helm-{{ admin_namespace_short }}-cert.pem
+            --tls-key     helm-{{ admin_namespace_short }}-key.pem
+            --tiller-namespace={{ admin_namespace_full }}
+            --namespace=kube-system
+            --debug
+  args:
+    chdir: "{{ helm_certs_dir }}/{{ admin_namespace_short }}"
+  with_items:
+    - repo: stable
+      name: nginx-ingress
+      valuesFile: nginx-ingress-external.yml
+    - repo: stable
+      name: nginx-ingress
+      valuesFile: nginx-ingress-internal.yml
+    # - repo: monocular
+    #   name: monocular
+    #   valuesFile: monocular.yml
+    - repo: stable
+      name: prometheus
+      extraArgs: --name prometheus
+      valuesFile: prometheus.yml
+    - repo: stable
+      name: grafana
+      valuesFile: grafana.yml

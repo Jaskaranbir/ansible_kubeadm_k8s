@@ -1,0 +1,77 @@
+---
+
+- name: Reset Kubernetes component
+  shell: "kubeadm reset --force"
+  register: reset_cluster
+  args:
+    executable: /bin/bash
+
+- name: Copy kubeadm conf to {{ kubernetes_dir }}
+  template:
+    src: kubeadm-config.yml.j2
+    dest: "{{ kubernetes_dir }}/kubeadm-config.yml"
+
+- name: Change permissions of /var/lib/kubelet
+  file:
+    path: /var/lib/kubelet
+    mode: 0755
+    state: directory
+
+- name: Reload Kubelet daemon
+  systemd:
+    name: kubelet
+    daemon_reload: yes
+    enabled: yes
+
+- name: Init Kubernetes cluster
+  when: reset_cluster|succeeded
+  command: kubeadm init
+            --config={{ kubernetes_dir }}/kubeadm-config.yml
+            {{ kubeadm_opts }}
+  register: init_cluster
+
+- name: Create Kubernetes config directory
+  become: false
+  file:
+    path: "~/.kube/"
+    state: directory
+
+- name: Change permissions of ~/.kube/config
+  file:
+    path: "{{ kubernetes_dir }}/admin.conf"
+    mode: 0775
+
+- name: Copy admin.conf to Home directory
+  become: false
+  when: init_cluster and ansible_ssh_user is defined
+  copy:
+    src: "{{ kubeadmin_config }}"
+    dest: "~/.kube/config"
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: 0755
+    remote_src: true
+
+- name: Enable and restart Kubelet engine
+  systemd:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
+    enabled: yes
+  register: started_kubelet
+
+- name: Deploy Kubernetes dashboard into cluster
+  become: false
+  when: init_cluster and started_kubelet and enable_dashboard
+  command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+
+- name: Copy Kubernetes persistent-volume templates
+  include: "{{ ansible_macros_dir }}/template_copy.yml"
+  with_items:
+    - name: Add namespace manifests
+      src : "{{ ansible_templates_dir }}/persistent-volumes"
+      dest: "{{ kube_persistent_volumes_dir }}"
+
+- name: Create Kubernetes persistent-volumes
+  become: false
+  command: kubectl apply -f {{ kube_persistent_volumes_dir }}

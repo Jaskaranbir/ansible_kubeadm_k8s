@@ -1,0 +1,7 @@
+---
+
+- name: Setup Docker and Docker-Compose
+  include: docker.yml
+
+- name: Setup Kubernetes packages
+  include: kubernetes.yml

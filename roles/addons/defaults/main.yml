@@ -1,0 +1,18 @@
+ansible_templates_dir: "{{ role_path }}/templates"
+
+kube_namespace_dir: "{{ kubernetes_dir }}/namespaces"
+helm_service_account: tiller
+kube_rbac_dir: "{{ kubernetes_dir }}/rbac"
+helm_certs_dir: "{{ kube_cert_dir }}/helm"
+helm_values_dir: "{{ kubernetes_dir }}/helm-values"
+
+admin_namespace_full: production
+admin_namespace_short: prod
+# full_namespace and short_namespace names
+helm_namespaces:
+  - full_ns: development
+    short_ns: dev
+  - full_ns: staging
+    short_ns: stag
+  - full_ns: production
+    short_ns: prod
