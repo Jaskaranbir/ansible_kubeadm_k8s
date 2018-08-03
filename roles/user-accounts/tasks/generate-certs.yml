@@ -1,0 +1,31 @@
+---
+
+- name: Add user-certs directory for user - {{ item }}
+  file:
+    path: "{{ user_certs_dir }}/{{ item }}"
+    state: directory
+
+- name: Generate private-key for user - {{ item }}
+  command: openssl genrsa
+            -out {{ item }}.key 2048
+  args:
+    chdir: "{{ user_certs_dir }}"
+
+- name: Generate csr for user - {{ item }}
+  command: openssl req -new
+            -key  {{ item }}.key
+            -out  {{ item }}.csr
+            -subj "/CN={{ item }}/O=ripensense"
+  args:
+    chdir: "{{ user_certs_dir }}"
+
+- name: Generate certificate for user - {{ item }}
+  command: openssl x509 -req
+            -in    {{ item }}.csr
+            -CA    {{ kube_cert_dir }}/ca.crt
+            -CAkey {{ kube_cert_dir }}/ca.key
+            -CAcreateserial
+            -out   {{ item }}.crt
+            -days  1000
+  args:
+    chdir: "{{ user_certs_dir }}"

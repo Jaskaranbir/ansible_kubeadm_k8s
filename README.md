@@ -3,6 +3,14 @@
 
 Quickly bootstrap a Kubernetes cluster via Kubeadm using this Playbook.
 
+**This setup has been adapted for implementing the *TerrexTech* cluster.**
+Following changes have been applied:
+
+* TerrexTech user-accounts for its members
+* Specific roles for the respective user-accounts
+
+---
+
 System Requirements:
 
 * Required Ansible version: 2.6+

@@ -1,0 +1,34 @@
+---
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: dev-generic
+rules:
+- apiGroups:
+    - ""
+    - apps
+    - batch
+    - extensions
+    - rbac.authorization.k8s.io
+  resources:
+    - "*"
+  verbs:
+    - get
+    - list
+    - watch
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: dev-generic-binding
+subjects:
+  - kind: Group
+    name: system:authenticated
+    apiGroup: ""
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: dev-generic

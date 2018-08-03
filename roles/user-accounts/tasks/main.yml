@@ -1,0 +1,43 @@
+---
+
+- name: Setup certs for users
+  include: generate-certs.yml
+  with_items:
+    - bhupesh
+    - brandon
+    - manpreet
+
+- name: Add user-roles directory
+  file:
+    path: "{{ user_roles_dir }}"
+    state: directory
+
+- name: Add generic readonly-developer role
+  template:
+    src: "{{ ansible_templates_dir }}/dev-generic-role.yml.j2"
+    dest: "{{ user_roles_dir }}/dev-generic-role.yml"
+
+- name: Apply generic readonly-developer role
+  become: false
+  command: "kubectl apply -f {{ user_roles_dir }}/dev-generic-role.yml"
+
+- name: Setup roles for users
+  include: setup-account-roles.yml
+  with_items:
+    - bhupesh
+    - brandon
+    - manpreet
+
+- name: Ensure Kubernetes Kubeconfig directory exits
+  file:
+    path: "{{ kube_kubeconfig_dir }}"
+    state: directory
+
+- name: Add Kubeconfig for user - {{ item }}
+  template:
+    src: "{{ ansible_templates_dir }}/user-kubeconfig.yml.j2"
+    dest: "{{ kube_kubeconfig_dir }}/{{ item }}-kubeconfig.yml"
+  with_items:
+    - bhupesh
+    - brandon
+    - manpreet

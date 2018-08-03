@@ -1,0 +1,4 @@
+ansible_templates_dir: "{{ role_path }}/templates"
+
+user_certs_dir: "{{ kube_cert_dir }}/users"
+user_roles_dir: "{{ kube_rbac_dir }}/users"

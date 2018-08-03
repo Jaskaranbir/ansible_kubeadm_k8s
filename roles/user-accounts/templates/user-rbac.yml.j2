@@ -1,0 +1,67 @@
+---
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: user-{{ user }}-development
+  namespace: development
+rules:
+- apiGroups:
+    - ""
+    - apps
+    - extensions
+    - batch
+  resources:
+    - "*"
+  verbs:
+    - "*"
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: user-{{ user }}-development-binding
+  namespace: development
+subjects:
+  - kind: User
+    name: {{ user }}
+    apiGroup: ""
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: user-{{ user }}-development
+
+---
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: user-{{ user }}-staging
+  namespace: staging
+rules:
+- apiGroups:
+    - ""
+    - apps
+    - extensions
+    - batch
+  resources:
+    - "*"
+  verbs:
+    - "*"
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: user-{{ user }}-staging-binding
+  namespace: staging
+subjects:
+  - kind: User
+    name: {{ user }}
+    apiGroup: ""
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: user-{{ user }}-staging
