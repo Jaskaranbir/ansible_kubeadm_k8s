@@ -6,13 +6,21 @@ kube_rbac_dir: "{{ kubernetes_dir }}/rbac"
 helm_certs_dir: "{{ kube_cert_dir }}/helm"
 helm_values_dir: "{{ kubernetes_dir }}/helm-values"
 
-admin_namespace_full: production
-admin_namespace_short: prod
 # full_namespace and short_namespace names
 helm_namespaces:
-  - full_ns: development
+  dev:
+    full_ns: development
     short_ns: dev
-  - full_ns: staging
+  stag:
+    full_ns: staging
     short_ns: stag
-  - full_ns: production
+  prod:
+    full_ns: production
     short_ns: prod
+
+# This array is used for automated interation,
+# where something must be installed in all namespaces
+helm_namespaces_arr:
+  - "{{ helm_namespaces.dev }}"
+  - "{{ helm_namespaces.stag }}"
+  - "{{ helm_namespaces.prod }}"

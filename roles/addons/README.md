@@ -27,7 +27,7 @@ Role Variables
 **admin_namespace_full**: Full-name for the main namespace.
 **admin_namespace_short**: Short-name for the main namespace.
 
-**helm_namespaces**: An array with namespaces where helm should be installed. Should have short-name and full-name for namespace. For example:
+**helm_namespaces_arr**: An array with namespaces where helm should be installed. Should have short-name and full-name for namespace. For example:
 
 ```YAML
   - full_ns: development

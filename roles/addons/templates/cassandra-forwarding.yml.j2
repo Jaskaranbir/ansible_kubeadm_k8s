@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-external-controlle-tcp
+  namespace: kube-system
+data:
+  9042: "development/kind-bobcat-cassandra:9042"

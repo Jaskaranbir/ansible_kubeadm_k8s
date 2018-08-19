@@ -1,0 +1,23 @@
+image:
+  tag: 3.11.3
+
+config:
+  cluster_size: 1
+  seed_size: 1
+
+persistence:
+  enabled: false
+
+resources:
+  requests:
+    memory: 2Gi
+    cpu: 1
+  limits:
+    memory: 2Gi
+    cpu: 1
+
+# Running on budget-hardware here :-/
+livenessProbe:
+  initialDelaySeconds: 200
+readinessProbe
+  initialDelaySeconds: 200
