@@ -161,6 +161,11 @@ Vagrant.configure("2") do |config|
             path: "scripts/vagrant/install_packages.sh",
             privileged: true
 
+          # Convenient to play around with cqlsh
+          config.vm.provision :file,
+            source: "scripts/vagrant/.cqlshrc",
+            destination: "#{vc[:user_home_path]}/.cqlshrc"
+
           # Ansible 2.6+ works only when SSH key is protected.
           # So we manually copy the SSH key and set its permissions.
           config.vm.provision :shell,

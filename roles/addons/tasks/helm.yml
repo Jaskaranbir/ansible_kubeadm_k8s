@@ -19,7 +19,7 @@
   vars:
     namespace: "{{ item.short_ns }}"
     cert_path: "{{ helm_certs_dir }}/{{ item.short_ns }}"
-  with_items: "{{ helm_namespaces }}"
+  with_items: "{{ helm_namespaces_arr }}"
 
 - name: Install helm binary
   shell: curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
@@ -38,7 +38,7 @@
             --tiller-tls-key  tiller-{{ item.short_ns }}-key.pem
   args:
     chdir: "{{ helm_certs_dir }}/{{ item.short_ns }}"
-  with_items: "{{ helm_namespaces }}"
+  with_items: "{{ helm_namespaces_arr }}"
 
 - name: Wait for tiller to be ready
   wait_for:
@@ -51,9 +51,13 @@
       src : "{{ ansible_templates_dir }}/helm-values"
       dest: "{{ helm_values_dir }}"
 
-# - name: Add Monocular helm-repo
-#   become: false
-#   command: helm repo add monocular https://helm.github.io/monocular --tiller-namespace={{ admin_namespace_full }}
+- name: Add Monocular helm-repo
+  become: false
+  command: helm repo add monocular https://helm.github.io/monocular --tiller-namespace={{ helm_namespaces.prod.full_ns }}
+
+- name: Add Incubator helm-repo
+  become: false
+  command: helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/ --tiller-namespace=development
 
 - name: Install helm packages
   become: false
@@ -69,14 +73,18 @@
                 else none
             }}
             --tls
-            --tls-ca-cert tiller-{{ admin_namespace_short }}-ca.pem
-            --tls-cert    helm-{{ admin_namespace_short }}-cert.pem
-            --tls-key     helm-{{ admin_namespace_short }}-key.pem
-            --tiller-namespace={{ admin_namespace_full }}
-            --namespace=kube-system
+            --tls-ca-cert tiller-{{ helm_namespaces[item.helm_namespace].short_ns }}-ca.pem
+            --tls-cert    helm-{{ helm_namespaces[item.helm_namespace].short_ns }}-cert.pem
+            --tls-key     helm-{{ helm_namespaces[item.helm_namespace].short_ns }}-key.pem
+            --tiller-namespace={{ helm_namespaces[item.helm_namespace].full_ns }}
+            --namespace={{
+              item.install_namespace
+                if item.install_namespace is defined
+                else helm_namespaces[item.helm_namespace].full_ns
+            }}
             --debug
   args:
-    chdir: "{{ helm_certs_dir }}/{{ admin_namespace_short }}"
+    chdir: "{{ helm_certs_dir }}/{{ helm_namespaces[item.helm_namespace].short_ns }}"
   with_items:
     - repo: stable
       name: nginx-ingress
@@ -94,3 +102,7 @@
     - repo: stable
       name: grafana
       valuesFile: grafana.yml
+    - repo: incubator
+      name: cassandra
+      valuesFile: cassandra.yml
+      helm_namespace: dev

@@ -1,0 +1,6 @@
+[connection]
+hostname = 172.17.8.101
+port = 9042
+
+[cql]
+version = 3.4.4
